@@ -106,6 +106,8 @@ def _stage_modules(modules, pin_memory, reader):
                 if template is None:
                     continue
                 info = cache.index[template]
+                if cache.async_writer is not None:
+                    cache.async_writer.wait(info["safetensors_file"])
                 requests.append(
                     (
                         os.fspath(info["safetensors_file"]),
