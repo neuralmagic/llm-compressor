@@ -68,7 +68,16 @@ class MinMaxObserver(Observer):
 
 
 def _get_min_max(observed: torch.Tensor) -> MinMaxTuple:
-    min_vals = torch.amin(observed, dim=(0, -1))
-    max_vals = torch.amax(observed, dim=(0, -1))
+    """Per-channel min/max over every non-channel (batch) dimension.
+
+    Reduces over all dimensions except the last (channel) dimension, so a
+    2-D ``[batch, channel]`` tensor yields one min/max per channel -- the
+    same result as the previous ``dim=(0, -1)``. Unlike ``dim=(0, -1)``,
+    this does not crash on a 1-D observed tensor, where dim 0 and dim -1
+    are the same axis and PyTorch rejects a duplicate dimension.
+    """
+    batch_dims = tuple(range(observed.dim() - 1))
+    min_vals = torch.amin(observed, dim=batch_dims)
+    max_vals = torch.amax(observed, dim=batch_dims)
 
     return min_vals, max_vals
